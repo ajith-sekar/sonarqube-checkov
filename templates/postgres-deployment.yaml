@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
+  namespace: sonarqube  # Optional: if not already in metadata
 spec:
   replicas: 1
   selector:
@@ -14,16 +15,18 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: {{ .Values.postgres.image }}
+          image: postgres:15
+          securityContext:                  # ✅ Added block
+            allowPrivilegeEscalation: false
           env:
             - name: POSTGRES_USER
-              value: "{{ .Values.postgres.user }}"
+              value: "sonar"
             - name: POSTGRES_PASSWORD
-              value: "{{ .Values.postgres.password }}"
+              value: "sonarpass"
             - name: POSTGRES_DB
-              value: "{{ .Values.postgres.database }}"
+              value: "sonarqube"
           ports:
-            - containerPort: {{ .Values.postgres.port }}
+            - containerPort: 5432
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
@@ -31,4 +34,3 @@ spec:
         - name: postgres-storage
           persistentVolumeClaim:
             claimName: postgres-pvc
-
